@@ -1,0 +1,18 @@
+#!/bin/sh
+#pass
+SAVEDSTTY=`stty -g`
+FINDTEXT="find -type f -print"
+stty -echo
+echo "Enter your password :"
+read PASS
+stty $SAVEDSTTY
+DIR="$(dirname $(readlink -f $0))"
+$FINDTEXT | while read f
+do
+pas=$(grep -c "$PASS" "$f")
+if [ $pas -gt 0 ]; then
+echo "$f `grep -n "$PASS" "$f" | awk -F: '{ print $1 }'`"
+else
+echo -e "$f \033[32m Совпадения не найдены\033[37m"
+fi
+done

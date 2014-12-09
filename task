@@ -1,0 +1,81 @@
+#!/bin/bash
+if [ $# != 1 ]; then
+ echo "Usage: `basename $0` [stage|hosting]">&2
+ exit 1
+fi
+host=$1
+option=$2
+FILETASK=/var/www/html/new.txt
+FILELOG=/var/www/html/Rumyantsev
+TEMPFILES=/root/files.tmp
+TEMPDIRS=/root/dirs.tmp
+case $host in
+stage) echo "Replacing files to stage...."
+;;
+hosting) echo "Replacing files to hosting..."
+;;
+ford) echo "Replacing files to ford..."
+;;
+*) echo "`basename $0` unknown host, usage: `basename $0` [stage|hosting]">&2
+exit 1
+;;
+esac
+#выводим на экран сообщение
+echo -e "\033[32m"
+echo -e "\r `date` $host \r" >> $FILELOG
+cat $FILETASK | tee -a $FILELOG
+echo -e "\r" >> $FILELOG
+echo -e "\033[37m"
+read -p "Нужно ли что то исправить? " d
+#если ввели 1 то откроется редактор
+if [[ "$d" == '1' ]];
+ then vim $FILETASK 
+fi
+#приводим файл в нужный формат
+sed -i 's/^\\\\vs-fw35-customers\\sites\$/ites/;
+s/\\/\//g;
+s/ites\/mini_/ites\/mini\/_/;
+s/\r//g' $FILETASK 
+cat $FILETASK | grep '\/$' > $TEMPDIRS
+cat $FILETASK | grep '\.[a-z]\{2,4\}' > $TEMPFILES
+#Proveryaem i kopiryem faily
+if [ -s $TEMPFILES ]; then
+ while read LINE
+ do
+ if [ -s '/media/custom/s'$LINE ]; then
+   rsync -vrultz$option --exclude "*Web.config" '/media/custom/s'$LINE '/media/'$host'/S'$LINE | egrep -v 'sent|send' | tr -s "[\n]"
+ else
+ echo -e "$LINE \033[31mdoes not exist\033[37m"
+ fi
+ done <$TEMPFILES
+else
+echo "No files to tranfer"
+fi
+#Proveryaem i kopiruem dirsy
+if [ -s $TEMPDIRS ]; then
+ while read LINE
+ do
+ if [ -d '/media/custom/s'$LINE ]; then
+   rsync -vrultz$option --exclude "*Web.config" '/media/custom/s'$LINE '/media/'$host'/S'$LINE | egrep -v 'sent|send' | tr -s "[\n]"
+ else
+ echo -e "$LINE \033[31mdoes not exist\033[37m"
+ fi
+ done <$TEMPDIRS
+else
+echo "No dirs to tranfer"
+fi
+echo -e "\033[36mНе распознанные папки:\033[37m"
+cat $FILETASK | grep -v '\/$' | grep -v '\.[a-z]\{2,4\}'
+#for st in $(cat $FILETASK)
+#do
+#   rsync -vrultz$option --exclude "*Web.config" '/media/custom/s'$st '/media/'$host'/S'$st | egrep -v 'sent|send' | tr -s "[\n]"
+#done
+#если копирование было с бэкапом, что делаем дальше?
+#for st in $(cat /var/www/html/new.txt)
+#do
+#   if [[ "$option" == 'b' ]]; then
+#     rm -ri /media/$host/S$st*~
+#   fi
+#done
+chmod 644 $FILETASK 
+exit 0

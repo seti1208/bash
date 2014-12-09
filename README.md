@@ -1,4 +1,4 @@
-bash
+hello
 ====
 
-Linux scripting
+I love linux

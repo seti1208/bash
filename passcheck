@@ -6,7 +6,7 @@ stty -echo
 echo "Enter your password :"
 read PASS
 stty $SAVEDSTTY
-DIR="$(dirname $(readlink -f $0))"
+#DIR="$(dirname $(readlink -f $0))"
 $FINDTEXT | while read f
 do
 pas=$(grep -c "$PASS" "$f")

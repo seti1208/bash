@@ -1,0 +1,12 @@
+#!/bin/bash
+VM_FILE=/root/vm.txt
+KEY=/root/.ssh/id_dsa
+COMMAND="df -mP -x tmpfs | egrep -v 'tmpfs|Filesystem';stat .bash_history"
+for HOST in $(cat $VM_FILE | awk '{ print $2}') 
+do
+echo -e "\033[32m"
+cat $VM_FILE | grep $HOST
+echo -e "\033[37m"
+ssh -i $KEY $HOST $COMMAND
+done
+exit 0

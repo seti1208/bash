@@ -1,0 +1,25 @@
+#!/bin/sh
+echo "<html><head>"
+echo "<title>CentOS</title>"
+echo "</head><body>"
+echo "<TABLE align="center" cellspacing="10" border=1 wight="30%" cols="5">"
+echo "<TH align="center">- Server -</TH>"
+echo "<TH align="center">- DISK 1 -</TH>"
+echo "<TH align="center">- DISK 2 -</TH>"
+echo "<TH align="center">- DISK 3 -</TH>"
+echo "<TH align="center">- DISK 4 -</TH>"
+VM_FILE=/root/vm.txt
+KEY=/root/.ssh/id_dsa
+COMMAND="df -mP -x tmpfs | egrep -v 'Filesystem|\\var' | awk '{U+=\$3}; END {print \"<td>\"U/1024\"</td>\"}' && df -mP | grep 'var' | awk '{print \"<td>\"\$3/1024\"</td>\"}'"
+for HOST in $(cat $VM_FILE | awk '{ print $2 }') 
+do
+echo "<tr><td>"
+cat $VM_FILE | grep $HOST
+ssh -i $KEY $HOST $COMMAND
+echo "</tr>"
+done
+echo "</TABLE>"
+echo "<h3><center>`date`<center></h3>"
+echo "</body>"
+echo "</HTML>"
+exit 0

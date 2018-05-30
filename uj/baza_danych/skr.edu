@@ -1,0 +1,52 @@
+#!/bin/bash
+bd=studenci.bd
+if [ ! -f $bd ]; then echo "baza danych nie istnieje";exit 0;fi
+
+echo -n "1. Dodać studenta
+2. Usunąć studenta
+3. Wyświetlić oceny studentów i średnią
+4. Pokaż dane studenta
+"
+read -p "Wybierz opcje [1-4]: " wybor
+[[ $wybor != ?([1-4]) ]] && echo "Nie ma takiej opcji"
+sprawdzam_studenta() {
+    if ! grep -q "^$1;$2" $bd; then
+    	echo -e "Nie znależone studenta \033[31m$1 $imie1 $imie2 \033[39m" 
+	exit 0
+    else	
+    awk -F';' '/'^$1';'$2'/ { print "\nznależone studenci:\n\033[32m"$1,$2,$3"\033[39m" }' $bd	
+    read -p "Czy na pewno chcesz ich skasować z listy? [tak/no]:" answer
+    [[ $answer == "tak" ]] && sed -i "/^$1;$2/d" $bd && exit 0
+    fi	
+}
+
+
+case "$wybor" in
+1)  echo "Dodawanie studenta"
+    read -p "Podaj nazwisko: " nazwisko
+    read -p "Podaj imię1: " imie1
+    read -p "Podaj imię2: " imie2
+    if grep -q "^$nazwisko;$imie1;$imie2;" $bd; then echo -e "\033[31mstudent $nazwisko $imie1 $imie2 już istnieje, trzeba używać inną bazę\033[39m"; exit 0;fi
+    echo "$nazwisko;$imie1;$imie2;0;" >> $bd && echo -e "\033[31mstudent $nazwisko $imie1 $imie2 został wpisany do bazy\033[39m"
+  
+    ;;
+2)  echo "Usuwamy studenta"
+    read -p "Podaj nazwisko: " nazwisko
+    sprawdzam_studenta $nazwisko
+    read -p "Podaj imię1 imie2: " imie1 imie2
+    sprawdzam_studenta $nazwisko $imie1';'$imie2
+    ;;
+3)  echo -e "\033[31mNazwisko Imię\t oceny\t\t \tśrendia\033[32m"
+    srednia=(`cat studenci.bd | awk -F';' '{ print $4 }' | awk '{sum=0; for (i=1;i<=NF;i++)sum+=$i; print sum/NF;}'`)
+    a=1; for x in ${srednia[@]};do awk -F';' 'NR=='$a' {print $1,$2"\t",$4"\t", "\t'$x'"}' $bd; a=$((a+1)); done | sort
+    echo -e "\033[39m"
+    ;;
+4)  read -p "Podaj nazwisko: " nazwisko 
+    awk -F';' '/'$nazwisko'/ { print "\n"$1,$2,$3 }' $bd	
+    #read -p "Podaj imię1: " imie1
+    ;;
+esac
+
+
+
+

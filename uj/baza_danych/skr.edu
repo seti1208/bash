@@ -19,7 +19,8 @@ sprawdzam_studenta() {
     [[ $answer == "tak" ]] && sed -i "/^$1;$2/d" $bd && exit 0
     fi	
 }
-
+#niżej kod nie jest bezpieczny dlatego że nie dodałam taki filtr: 
+#printf '%s\n' "${PODANE_DANE//[![:alpha:]]}"
 
 case "$wybor" in
 1)  echo "Dodawanie studenta"

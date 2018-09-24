@@ -1,4 +1,3 @@
 hello
 ====
 
-I love linux
